@@ -1,4 +1,4 @@
-name: Build APK
+name: Build APK from Zip
 
 on:
   push:
@@ -9,13 +9,15 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: VARSHU_ULTIMATE_Android_Project  # <-- Apne folder ka exact poora naam yahan likhein
-
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Unzip project
+        run: |
+          unzip -o *.zip -d extracted_project
+          echo "Files inside extracted folder:"
+          ls -la extracted_project
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -23,15 +25,22 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Make gradlew executable
-        run: chmod +x ./gradlew
-
-      - name: Build Debug APK
-        run: ./gradlew assembleDebug --no-daemon
+      - name: Locate gradlew and Build APK
+        run: |
+          # Dhoondho gradlew file kahan hai
+          GRADLE_DIR=$(find extracted_project -name "gradlew" -exec dirname {} \; | head -n 1)
+          if [ -z "$GRADLE_DIR" ]; then
+            echo "Error: gradlew file nahi mili zip ke andar!"
+            exit 1
+          fi
+          echo "Gradle project found in: $GRADLE_DIR"
+          cd "$GRADLE_DIR"
+          chmod +x ./gradlew
+          ./gradlew assembleDebug --no-daemon
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: my-app-apk
-          path: VARSHU_ULTIMATE_Android_Project/app/build/outputs/apk/debug/*.apk
+          path: extracted_project/**/build/outputs/apk/debug/*.apk
           
