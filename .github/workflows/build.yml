@@ -15,7 +15,7 @@ jobs:
 
       - name: Extract Project Zip
         run: |
-          mkdir project_root
+          mkdir -p project_root
           unzip -o *.zip -d project_root
           ls -la project_root
 
@@ -27,18 +27,24 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.4'
 
-      - name: Generate Wrapper and Build
+      - name: Generate Wrapper and Build APK
         run: |
-          # Project directory me move karein jahan build.gradle.kts hai
-          BUILD_DIR=$(find project_root -name "build.gradle.kts" -exec dirname {} \; | head -n 1)
-          cd "$BUILD_DIR"
+          # Settings file dhoondho taaki root directory mile
+          ROOT_DIR=$(find project_root -name "settings.gradle*" -exec dirname {} \; | head -n 1)
+          if [ -z "$ROOT_DIR" ]; then
+            ROOT_DIR="project_root"
+          fi
+          echo "Main Project Root is: $ROOT_DIR"
+          cd "$ROOT_DIR"
           
-          # Gradle wrapper generate karein kyunki zip me wrapper nahi tha
-          gradle wrapper
+          # Root me wrapper generate karein
+          gradle wrapper --gradle-version 8.4
           chmod +x gradlew
           
-          # Debug APK build karein
+          # APK build command
           ./gradlew assembleDebug --stacktrace
 
       - name: Upload APK
