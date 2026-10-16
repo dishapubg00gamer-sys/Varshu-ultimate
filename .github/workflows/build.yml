@@ -29,7 +29,7 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Generate Wrapper and Build APK
+      - name: Fix Compatibility and Build APK
         run: |
           ROOT_DIR=$(find project_root -name "settings.gradle*" -exec dirname {} \; | head -n 1)
           if [ -z "$ROOT_DIR" ]; then
@@ -37,11 +37,15 @@ jobs:
           fi
           cd "$ROOT_DIR"
           
-          # Force JVM target 17 for both Java and Kotlin
-          ./gradlew assembleDebug \
-            -Dorg.gradle.jvmargs="-Xmx2048m" \
-            -Pkotlin.compiler.jvmTargetValidationMode=warning \
-            --no-daemon
+          # 1. Missing wrapper generate karein
+          gradle wrapper --gradle-version 8.9
+          chmod +x gradlew
+          
+          # 2. JVM mismatch fix karne ke liye gradle.properties me validation disable karein
+          echo "kotlin.jvm.target.validation.mode=warning" >> gradle.properties
+          
+          # 3. Build trigger karein
+          ./gradlew assembleDebug --no-daemon
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
