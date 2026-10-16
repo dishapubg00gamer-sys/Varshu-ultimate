@@ -9,6 +9,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: VARSHU_ULTIMATE_Android_Project  # <-- Apne folder ka exact poora naam yahan likhein
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -29,6 +33,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: my-app-apk
-          path: app/build/outputs/apk/debug/*.apk
-
-      
+          path: VARSHU_ULTIMATE_Android_Project/app/build/outputs/apk/debug/*.apk
+          
