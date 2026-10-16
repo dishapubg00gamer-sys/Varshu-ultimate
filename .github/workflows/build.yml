@@ -37,12 +37,11 @@ jobs:
           fi
           cd "$ROOT_DIR"
           
-          # 8.9 wrapper generate
-          gradle wrapper --gradle-version 8.9
-          chmod +x gradlew
-          
-          # Compile debug APK
-          ./gradlew assembleDebug --no-daemon
+          # Force JVM target 17 for both Java and Kotlin
+          ./gradlew assembleDebug \
+            -Dorg.gradle.jvmargs="-Xmx2048m" \
+            -Pkotlin.compiler.jvmTargetValidationMode=warning \
+            --no-daemon
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
